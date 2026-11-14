@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  linux:
+    name: Linux / Rust ${{ matrix.toolchain }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain: ["1.93.1", stable]
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Rust toolchain
+        run: rustup toolchain install "${{ matrix.toolchain }}" --profile minimal --component rustfmt --component clippy
+
+      - name: Fetch locked dependencies
+        run: cargo +${{ matrix.toolchain }} fetch --locked
+
+      - name: Run all Rust tests
+        env:
+          CARGO_NET_OFFLINE: "true"
+          GIT_CONFIG_NOSYSTEM: "1"
+          GIT_CONFIG_GLOBAL: /dev/null
+        run: cargo +${{ matrix.toolchain }} test --all-targets --locked
+
+      - name: Check formatting, lint, and build release
+        if: matrix.toolchain == 'stable'
+        env:
+          CARGO_NET_OFFLINE: "true"
+        run: |
+          cargo +stable fmt --check
+          cargo +stable clippy --all-targets --locked -- -D warnings
+          cargo +stable build --release --locked
+
+      - name: Run release-binary PTY regressions
+        if: matrix.toolchain == 'stable'
+        env:
+          GIT_CONFIG_NOSYSTEM: "1"
+          GIT_CONFIG_GLOBAL: /dev/null
+        run: |
+          PYTHONPYCACHEPREFIX=target/python-cache python3 -m py_compile tests/*.py
+          python3 tests/pty_smoke.py target/release/riff
+          python3 tests/keyboard_protocol_smoke.py target/release/riff
+          python3 tests/final_regressions_smoke.py target/release/riff
+          python3 tests/pty_reload.py target/release/riff
+          python3 tests/pty_watch_permissions.py target/release/riff
+          python3 tests/pty_watch_permission_submodules.py target/release/riff
+          python3 tests/pty_intraline.py target/release/riff
+
+      - name: Verify source archive
+        if: matrix.toolchain == 'stable'
+        env:
+          CARGO_NET_OFFLINE: "true"
+        run: |
+          cargo +stable package --list --allow-dirty --locked
+          cargo +stable package --allow-dirty --locked

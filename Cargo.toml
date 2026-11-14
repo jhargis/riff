@@ -1,0 +1,54 @@
+[package]
+name = "riff"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.93.1"
+description = "A read-only terminal diff viewer with syntax highlighting, themes, and live reload"
+authors = ["Jay Hargis and contributors"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/jhargis/riff"
+homepage = "https://github.com/jhargis/riff"
+keywords = ["diff", "git", "terminal", "tui", "syntax-highlighting"]
+categories = ["command-line-utilities", "development-tools"]
+publish = false
+include = [
+    "/.gitattributes",
+    "/.gitignore",
+    "/.github/workflows/*.yml",
+    "/Cargo.toml",
+    "/Cargo.lock",
+    "/src/**",
+    "/tests/*.rs",
+    "/tests/*.py",
+    "/tests/fixtures/**",
+    "/examples/**",
+    "/docs/configuration.md",
+    "/docs/usage.md",
+    "/docs/screenshots/**",
+    "/licenses/**",
+    "/LICENSE",
+    "/THIRD-PARTY-NOTICES.md",
+    "/README.md",
+    "/CHANGELOG.md",
+    "/CONTRIBUTING.md",
+]
+
+[dependencies]
+clap = { version = "4.6", features = ["derive"] }
+crossterm = "0.29"
+dirs = "6"
+notify = "8.2"
+ratatui = "0.30.2"
+serde = { version = "1", features = ["derive"] }
+toml = "0.9"
+toml_edit = "0.23"
+tempfile = "3"
+syntect = { version = "5.3", default-features = false, features = ["default-fancy"] }
+two-face = { version = "0.5.2", default-features = false, features = ["syntect-fancy"] }
+unicode-width = "0.2"
+unicode-segmentation = "1.13"
+similar = "3.2.1"
+
+[target.'cfg(unix)'.dependencies]
+signal-hook = "0.3"

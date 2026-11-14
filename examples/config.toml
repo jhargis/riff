@@ -1,0 +1,53 @@
+# Native user path:
+# Linux/Unix: absolute $XDG_CONFIG_HOME/riff/config.toml or ~/.config/riff/config.toml.
+# macOS: ~/Library/Application Support/riff/config.toml.
+# Windows: %APPDATA%\riff\config.toml (roaming AppData).
+# --config PATH uses that existing file for both loading and saving.
+# Theme Enter, v, w, i, and acknowledged ctrl+w (no Shift) save only that setting.
+# Preview/Esc cancel, startup, print, and quit alone do not write configuration.
+# Built-ins: critique, dracula, catppuccin, nord, gruvbox, sunset,
+#            one-dark, monokai, hacker-term, github-dark.
+# Names accept case, spaces, hyphens, and underscores as aliases:
+#            "One Dark", "Hacker Term", "GitHub Dark".
+# CLI --theme overrides RIFF_THEME, which overrides this selection.
+theme = 'critique'
+view = 'auto' # auto splits at 100 columns; also accepts 'split' or 'unified'
+wrap = false  # w toggles; --wrap / --no-wrap override for this run; TUI only
+word_diff = true # i toggles; --word-diff / --no-word-diff override; also ANSI print
+watch = false # Ctrl-W toggles; --watch / --no-watch override; Git/file TUI only
+
+# Custom names cannot override built-ins. Inheritance is from a built-in only.
+# All keys are optional overrides; colors must be exactly #RRGGBB.
+[themes.'my midnight']
+extends = 'critique'
+background = '#101018'
+foreground = '#e6edf3'
+header = '#09090f' # header background
+hunk = '#1b1b29'   # hunk-header background
+border = '#3b3b50'
+muted = '#9090a8'
+gutter = '#0c0c13'
+gutter_foreground = '#8a8aa2'
+added_background = '#14241a'
+removed_background = '#341a22'
+added_word_background = '#1b4628' # stronger changed-token background only
+removed_word_background = '#5e2020' # syntax foreground stays unchanged
+added_gutter = '#1d442b'
+removed_gutter = '#5b2638'
+added_foreground = '#c9f2d4'
+removed_foreground = '#ffd0da'
+selection = '#36364f'
+keyword = '#ff79c6'
+string = '#a5d6ff'
+number = '#bd93f9'
+comment = '#8791a8'
+function = '#d2a8ff'
+type_name = '#7ee787'
+variable = '#ffb86c'
+
+# A minimal independent custom palette inherits everything else from sunset.
+[themes.'warm evening']
+extends = 'sunset'
+background = '#20141f'
+keyword = '#ff9875'
+comment = '#a58a9e'

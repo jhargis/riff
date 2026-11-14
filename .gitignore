@@ -1,0 +1,27 @@
+# Generated builds, caches, logs, and private working notes.
+/target/
+/riff-input-tests-*/
+/.local/
+/.pi/
+/.codex/
+/.agents/
+__pycache__/
+*.py[cod]
+*.log
+*.log.*
+
+# Local environment secrets. Keep shareable examples eligible for review.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Editor and operating-system artifacts.
+/.idea/
+/.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
