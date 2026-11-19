@@ -62,6 +62,7 @@ jobs:
           python3 tests/pty_watch_permissions.py target/release/riff
           python3 tests/pty_watch_permission_submodules.py target/release/riff
           python3 tests/pty_intraline.py target/release/riff
+          python3 tests/pty_file_picker.py target/release/riff
 
       - name: Verify source archive
         if: matrix.toolchain == 'stable'

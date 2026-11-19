@@ -41,13 +41,16 @@ python3 tests/pty_reload.py target/release/riff
 python3 tests/pty_watch_permissions.py target/release/riff
 python3 tests/pty_watch_permission_submodules.py target/release/riff
 python3 tests/pty_intraline.py target/release/riff
+python3 tests/pty_file_picker.py target/release/riff
 ```
 
 The permission/watch scripts specifically check ignored permission-denied siblings,
 lowercase `ctrl+w` dispatch, and native submodule watching using only owned
 fixtures. The intraline script checks word-background toggles with search,
 wrapping, theme acceptance, and watch/manual reload in both syntax modes and
-layouts. The harness opens its own controlling PTYs, not your terminal. It
+layouts. The file-picker script checks legacy and Kitty `Ctrl-P`, live fuzzy
+filtering, selection, navigation, cancel, and terminal restoration in both layouts.
+The harness opens its own controlling PTYs, not your terminal. It
 writes transcripts and results below ignored `target/` directories. Config-writing
 tests use temporary HOME/XDG_CONFIG_HOME/APPDATA or explicit fixture paths.
 Generated `target/` and `riff-input-tests-*` fixtures are excluded from text

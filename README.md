@@ -6,7 +6,8 @@ and a keyboard-driven interface.
 
 - Split and unified layouts, with automatic selection for your terminal width.
 - Changed-word backgrounds that preserve syntax colors and subtle line tints.
-- File/hunk navigation, live literal search, horizontal scrolling, and word wrap.
+- File/hunk navigation, a fuzzy file picker with change counts, live literal search,
+  horizontal scrolling, and word wrap.
 - Ten built-in themes, live theme previews, and custom TOML palettes.
 - Manual reload and native filesystem watching for Git and file sources.
 - Numbered plain-text or ANSI output when you do not need the interactive UI.
@@ -84,6 +85,7 @@ source/path rules and one-shot behavior, see the [usage reference](docs/usage.md
 | `g/G`, `Home/End` | First / last row |
 | `h/l`, `←/→`; `0` | Horizontal scroll; reset horizontal offset |
 | `n/p`; `]/[` | Next / previous hunk; next / previous file |
+| `Ctrl-P` | File picker with +/- counts; type fuzzy terms, arrows select, Enter opens |
 | `/` | Live, case-insensitive literal search |
 | `Enter/Shift-Enter`, `F3/Shift-F3` | Next / previous search match |
 | `t` | Theme preview; Enter accepts, Esc cancels |

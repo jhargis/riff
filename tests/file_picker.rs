@@ -18,9 +18,12 @@ fn file(path: &str) -> String {
 }
 
 fn app(paths: &[&str]) -> App {
-    let patch: String = paths.iter().map(|path| file(path)).collect();
+    patch_app(&paths.iter().map(|path| file(path)).collect::<String>())
+}
+
+fn patch_app(patch: &str) -> App {
     let mut app = App::new(
-        parse_patch(&patch).unwrap(),
+        parse_patch(patch).unwrap(),
         builtin_themes(),
         0,
         ViewMode::Unified,
@@ -265,8 +268,7 @@ fn counts_and_display_paths_include_deleted_renamed_binary_and_multiple_hunks() 
          diff --git a/image.png b/image.png\nBinary files a/image.png and b/image.png differ\n",
         file("src/app.rs")
     );
-    let mut app = app(&[]);
-    app.diff = parse_patch(&patch).unwrap();
+    let mut app = patch_app(&patch);
     app.resize(100, 24);
     open(&mut app);
     let entries = &app.file_picker.as_ref().unwrap().entries;
@@ -317,6 +319,29 @@ fn popup_only_renders_matching_entries_and_scrolls_to_selected_file() {
             screen(&mut app, width, height);
         }
     }
+}
+
+#[test]
+fn labels_sanitize_terminal_controls_and_long_unicode_queries_keep_the_caret_visible() {
+    let mut app = patch_app(
+        "diff --git \"a/unsafe\\033[31m.rs\" \"b/unsafe\\033[31m.rs\"\nold mode 100644\nnew mode 100755\n",
+    );
+    open(&mut app);
+    let rendered = screen(&mut app, 100, 24);
+    assert!(rendered.contains("unsafe^[[31m.rs"), "{rendered}");
+    assert!(!rendered.contains('\u{1b}'));
+    assert_eq!(matched_paths(&app), ["unsafe^[[31m.rs"]);
+    text(&mut app, &format!("{}界🦀", "long-query".repeat(20)));
+    let rendered = screen(&mut app, 40, 12);
+    let query_row = rendered
+        .lines()
+        .find(|row| row.contains("long-query"))
+        .unwrap();
+    assert!(
+        query_row.contains('界') && query_row.contains('🦀'),
+        "{rendered}"
+    );
+    assert!(query_row.ends_with("▏│"), "{rendered}");
 }
 
 #[test]

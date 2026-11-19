@@ -24,6 +24,8 @@ Initial version.
   limit or unrelated pair falls back for the whole run without truncation.
 - File/hunk navigation, live literal search, Unicode-aware horizontal scrolling,
   and optional word wrapping.
+- `Ctrl-P` opens a file picker with per-file addition/removal counts, live fuzzy
+  filtering with terms in any order, arrow selection, and Enter navigation.
 - Manual reload and debounced native filesystem watching, with best-effort
   reading/search position preservation and recoverable reload errors.
 - Selective persistence of accepted theme, layout, wrap, word-diff, and watch preferences

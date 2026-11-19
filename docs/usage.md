@@ -106,13 +106,16 @@ context, old/new numbers, and no-final-newline notes.
 | `0` | Reset horizontal scroll |
 | `n/p` | Next / previous hunk, wrapping |
 | `]/[` | Next / previous file, wrapping |
+| `Ctrl-P` | Open the fuzzy file picker with addition/removal counts |
+| File picker: `↓/↑`, `Home/End` | Next / previous match, wrapping; first / last match |
+| File picker: `Enter` / `Esc` / `Ctrl-U` | Open selected file / cancel / clear filter |
 | `/` | Start live, case-insensitive literal search |
 | `Enter/Shift-Enter`, `F3/Shift-F3` | Next / previous search match, wrapping |
 | `N` | Previous search match |
 | `Esc` | Clear accepted search |
 | `t` | Open live-preview theme picker |
-| Picker: `j/k`, `↓/↑`, `PgDn/PgUp`, `g/G`, `Home/End` | Preview themes |
-| Picker: `Enter` / `Esc` or `q` | Accept and save / restore original theme |
+| Theme picker: `j/k`, `↓/↑`, `PgDn/PgUp`, `g/G`, `Home/End` | Preview themes |
+| Theme picker: `Enter` / `Esc` or `q` | Accept and save / restore original theme |
 | Search entry: `Enter` / `Esc` / `Ctrl-U` | Accept / restore previous search / clear entry |
 | `v` | Toggle split / unified and save layout |
 | `w` | Toggle code word wrap and save wrapping |
@@ -126,6 +129,29 @@ Search counts matching logical code lines and metadata rows, not occurrences
 or wrap fragments. Split context copies count once; distinct changed
 counterparts can each match. Queries can span wrap boundaries, and late matches
 are revealed. Hunk navigation remains `n/p` while a search is accepted.
+
+### File picker
+
+Press `Ctrl-P` to list the files in the current diff. Each entry shows its total
+`+` additions and `-` removals across all hunks. Deleted files use their old path;
+renamed files use their new path. Binary and metadata-only changes show `+0 -0`
+when the patch has no added or removed text lines.
+
+Type to filter the list immediately. Matching is case-insensitive and fuzzy:
+letters in each term must occur in order anywhere in the path, but do not need
+to be adjacent. For example, `sapp` matches `src/app.rs`. Space-separated terms
+must all match, in any term order: `app src` also matches `src/app.rs`.
+This is not glob or regular-expression matching. Results stay in diff order.
+
+Use `↑/↓` to select a match. Use `Home/End` to select the first or last match.
+Press `Enter` to close the picker and navigate to the selected file.
+Press `Esc` to cancel without moving the diff. `Backspace` removes the last
+character, and `Ctrl-U` clears the filter. With no matches, Enter leaves the
+picker open. Other printable keys, including `q`, enter filter text.
+
+Opening and filtering do not change the accepted code search, saved preferences,
+or diff position. File selection resets horizontal scrolling to show the header.
+Reload results wait until the picker closes, as they do for the other dialogs.
 
 ### Scrolling and wrapping
 
@@ -220,8 +246,8 @@ and path filters. A deleted positional path is not reinterpreted as a revision.
 It preserves reading position, search selection, wrap continuation, horizontal
 offset, theme, and layout where possible. Missing content falls back to a nearby
 surviving line/file; indistinguishable duplicates can make anchoring best effort.
-Results arriving during search, help, or theme preview wait until the dialog
-closes; only the latest good result is applied.
+Results arriving during search, help, file selection, or theme preview wait
+until the dialog closes; only the latest good result is applied.
 
 Watching uses native OS filesystem events with a 150 ms debounce, not periodic
 Git polling. File-pair parents are watched for atomic replacement/recreation;
