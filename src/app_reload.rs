@@ -122,7 +122,7 @@ impl App {
                 self.reload.loading = false;
                 self.reload.error = None;
                 // Keep only the latest successful update while a modal owns its
-                // original search/cancel anchors or theme preview cache.
+                // original search/cancel anchors, file indices, or theme preview cache.
                 self.reload.pending = Some(diff);
             }
             ReloadEvent::Unchanged => {
@@ -150,7 +150,7 @@ impl App {
     }
 
     pub(super) fn apply_pending_reload(&mut self) {
-        if self.help || self.picker_original.is_some() || self.editing_search() {
+        if self.modal_open() {
             return;
         }
         if let Some(diff) = self.reload.pending.take() {

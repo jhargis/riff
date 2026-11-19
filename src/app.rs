@@ -17,6 +17,10 @@ use crate::{
 mod reload_state;
 pub use reload_state::ReloadRequests;
 
+#[path = "file_picker.rs"]
+mod files;
+pub use files::FilePicker;
+
 #[derive(Clone, Debug)]
 struct SearchEdit {
     previous_query: String,
@@ -46,6 +50,7 @@ pub struct App {
     pub search_matches: Vec<usize>,
     pub match_index: Option<usize>,
     pub picker_original: Option<usize>,
+    pub file_picker: Option<FilePicker>,
     pub help: bool,
     pub running: bool,
     search_edit: Option<SearchEdit>,
@@ -94,6 +99,7 @@ impl App {
             search_matches: Vec::new(),
             match_index: None,
             picker_original: None,
+            file_picker: None,
             help: false,
             running: true,
             search_edit: None,
@@ -142,6 +148,13 @@ impl App {
 
     pub fn editing_search(&self) -> bool {
         self.search_edit.is_some()
+    }
+
+    fn modal_open(&self) -> bool {
+        self.help
+            || self.picker_original.is_some()
+            || self.file_picker.is_some()
+            || self.editing_search()
     }
 
     pub fn current_match_row(&self) -> Option<usize> {
@@ -344,6 +357,10 @@ impl App {
                 .find(|row| *row < self.scroll)
                 .unwrap_or(*anchors.last().unwrap())
         };
+        self.jump_to_anchor(file, target);
+    }
+
+    fn jump_to_anchor(&mut self, file: bool, target: usize) {
         self.scroll = target;
         self.position_anchor = None;
         // An anchor may be below the last full page. Keep its logical position
@@ -511,17 +528,13 @@ impl App {
     pub fn handle_event(&mut self, event: Event) {
         match event {
             Event::Resize(width, height) => self.resize(width, height),
-            Event::Mouse(mouse)
-                if self.picker_original.is_none() && !self.help && !self.editing_search() =>
-            {
-                match mouse.kind {
-                    MouseEventKind::ScrollDown => self.scroll_by(3),
-                    MouseEventKind::ScrollUp => self.scroll_by(-3),
-                    MouseEventKind::ScrollLeft => self.horizontal_by(-4),
-                    MouseEventKind::ScrollRight => self.horizontal_by(4),
-                    _ => {}
-                }
-            }
+            Event::Mouse(mouse) if !self.modal_open() => match mouse.kind {
+                MouseEventKind::ScrollDown => self.scroll_by(3),
+                MouseEventKind::ScrollUp => self.scroll_by(-3),
+                MouseEventKind::ScrollLeft => self.horizontal_by(-4),
+                MouseEventKind::ScrollRight => self.horizontal_by(4),
+                _ => {}
+            },
             Event::Key(key) if key.kind != KeyEventKind::Release => self.key(key),
             _ => {}
         }
@@ -566,6 +579,10 @@ impl App {
             self.theme_key(key);
             return;
         }
+        if self.file_picker.is_some() {
+            self.file_picker_key(key);
+            return;
+        }
         if self.editing_search() {
             self.search_key(key);
             return;
@@ -575,6 +592,9 @@ impl App {
             match key.code {
                 KeyCode::Char('d') => self.scroll_by(half_page),
                 KeyCode::Char('u') => self.scroll_by(-half_page),
+                KeyCode::Char('p') if key.modifiers == KeyModifiers::CONTROL => {
+                    self.file_picker = Some(FilePicker::new(&self.diff, self.current_file()));
+                }
                 KeyCode::Char('w') if key.modifiers == KeyModifiers::CONTROL => self.toggle_watch(),
                 KeyCode::Char('r') if key.modifiers == KeyModifiers::CONTROL => {
                     self.request_reload()

@@ -7,6 +7,8 @@ use ratatui::{
     widgets::{Block, Borders, Clear, List, ListItem, ListState, Paragraph, Wrap},
 };
 
+use unicode_width::UnicodeWidthStr;
+
 use crate::{
     app::App,
     patch::sanitize,
@@ -134,7 +136,7 @@ pub fn draw(frame: &mut Frame<'_>, app: &App) {
                     sanitize(&app.query)
                 )
             } else {
-                " q quit · ? help · r reload · ctrl+w watch · w wrap · i words · / search · t themes · v view · n/p hunks · ]/[ files".into()
+                " q quit · ? help · r reload · ctrl+w watch · w wrap · i words · / search · Ctrl-P files · t themes · v view · n/p hunks · ]/[ files".into()
             };
             frame.render_widget(
                 Paragraph::new(keys)
@@ -145,6 +147,9 @@ pub fn draw(frame: &mut Frame<'_>, app: &App) {
     }
     if app.picker_original.is_some() {
         draw_picker(frame, app);
+    }
+    if app.file_picker.is_some() {
+        draw_files(frame, app);
     }
     if app.help {
         draw_help(frame, app);
@@ -320,8 +325,85 @@ fn draw_picker(frame: &mut Frame<'_>, app: &App) {
     frame.render_stateful_widget(list, area, &mut state);
 }
 
+fn draw_files(frame: &mut Frame<'_>, app: &App) {
+    let Some(picker) = &app.file_picker else {
+        return;
+    };
+    let palette = &app.theme().palette;
+    let height = picker.entries.len().saturating_add(4).clamp(5, 24) as u16;
+    let area = centered(frame.area(), 96, height);
+    let title = format!(
+        " Files · {}/{} ",
+        picker.matches.len(),
+        picker.entries.len()
+    );
+    let block = popup_block(&title, palette);
+    let inner = block.inner(area);
+    frame.render_widget(Clear, area);
+    frame.render_widget(block, area);
+    if inner.width == 0 || inner.height == 0 {
+        return;
+    }
+    let query = format!(" > {}▏", sanitize(&picker.query));
+    let offset = query.width().saturating_sub(usize::from(inner.width));
+    frame.render_widget(
+        Paragraph::new(clip_spans(
+            &[Span::raw(query)],
+            offset,
+            usize::from(inner.width),
+        )),
+        Rect::new(inner.x, inner.y, inner.width, 1),
+    );
+    let list_area = Rect::new(
+        inner.x,
+        inner.y.saturating_add(1),
+        inner.width,
+        inner.height.saturating_sub(2),
+    );
+    if picker.matches.is_empty() {
+        let message = if picker.entries.is_empty() {
+            " No files in diff."
+        } else {
+            " No matching files."
+        };
+        frame.render_widget(
+            Paragraph::new(message).style(Style::default().fg(palette.muted)),
+            list_area,
+        );
+    } else {
+        let items = picker.matches.iter().map(|index| {
+            let entry = &picker.entries[*index];
+            ListItem::new(Line::from(vec![
+                Span::styled(
+                    format!("+{} ", entry.additions),
+                    Style::default().fg(palette.added_foreground),
+                ),
+                Span::styled(
+                    format!("-{}  ", entry.deletions),
+                    Style::default().fg(palette.removed_foreground),
+                ),
+                Span::raw(entry.path.clone()),
+            ]))
+        });
+        let list = List::new(items).highlight_symbol("› ").highlight_style(
+            Style::default()
+                .bg(palette.selection)
+                .add_modifier(Modifier::BOLD),
+        );
+        let mut state = ListState::default().with_selected(picker.selected);
+        frame.render_stateful_widget(list, list_area, &mut state);
+    }
+    if inner.height > 1 {
+        frame.render_widget(
+            Paragraph::new(" ↑/↓ select · Enter open · Esc cancel · Ctrl-U clear")
+                .style(Style::default().fg(palette.muted)),
+            Rect::new(inner.x, inner.y + inner.height - 1, inner.width, 1),
+        );
+    }
+}
+
 fn draw_help(frame: &mut Frame<'_>, app: &App) {
-    let area = centered(frame.area(), 80, 29);
+    let area = centered(frame.area(), 80, 30);
     if area.width == 0 || area.height == 0 {
         return;
     }
@@ -337,6 +419,7 @@ fn draw_help(frame: &mut Frame<'_>, app: &App) {
         "0                    Reset horizontal scroll",
         "n/p                  Next / previous hunk (wraps)",
         "]/[                  Next / previous file (wraps)",
+        "Ctrl-P               Files: type fuzzy terms; ↑/↓ select, Enter open",
         "/                    Search text, case-insensitive, live results",
         "Enter / Shift-Enter  Next / previous search result (wraps)",
         "F3 / Shift-F3        Next / previous search result; N also goes back",
